@@ -1,0 +1,110 @@
+
+# ADVANCED PASSWORD GENERATOR 
+
+
+import random
+import string
+from getpass import getpass
+from IPython.display import display, Javascript
+
+# -----------------------------------------
+# Clipboard Copy 
+# -----------------------------------------
+def copy_to_clipboard(text):
+    display(Javascript(f"""
+    navigator.clipboard.writeText("{text}");
+    alert("Password copied to clipboard!");
+    """))
+
+# -----------------------------------------
+# Input Validation Function
+# -----------------------------------------
+def get_valid_int(prompt, min_val, max_val):
+    while True:
+        try:
+            value = int(input(prompt))
+            if min_val <= value <= max_val:
+                return value
+            else:
+                print(f"❌ Enter a value between {min_val} and {max_val}")
+        except ValueError:
+            print("❌ Invalid input. Please enter an integer.")
+
+# -----------------------------------------
+# Yes/No Validation
+# -----------------------------------------
+def get_yes_no(prompt):
+    while True:
+        choice = input(prompt).lower()
+        if choice in ["yes", "no"]:
+            return choice == "yes"
+        print("❌ Enter yes or no.")
+
+# -----------------------------------------
+# Password Generator Function
+# -----------------------------------------
+def generate_password(length, use_letters, use_digits, use_symbols, exclude_chars):
+    characters = ""
+
+    if use_letters:
+        characters += string.ascii_letters
+    if use_digits:
+        characters += string.digits
+    if use_symbols:
+        characters += string.punctuation
+
+    # Remove excluded characters
+    for char in exclude_chars:
+        characters = characters.replace(char, "")
+
+    if not characters:
+        raise ValueError("No characters available to generate password.")
+
+    # Security Rule: Ensure at least one char from each selected type
+    password = []
+    if use_letters:
+        password.append(random.choice(string.ascii_letters))
+    if use_digits:
+        password.append(random.choice(string.digits))
+    if use_symbols:
+        password.append(random.choice(string.punctuation))
+
+    # Fill remaining length
+    while len(password) < length:
+        password.append(random.choice(characters))
+
+    random.shuffle(password)
+    return "".join(password)
+
+# =========================================
+# MAIN PROGRAM
+# =========================================
+print("====== SECURE PASSWORD GENERATOR ======")
+
+length = get_valid_int("Enter password length (8–50): ", 8, 50)
+
+use_letters = get_yes_no("Include letters? (yes/no): ")
+use_digits = get_yes_no("Include numbers? (yes/no): ")
+use_symbols = get_yes_no("Include symbols? (yes/no): ")
+
+exclude_chars = input("Characters to exclude (press Enter to skip): ")
+
+try:
+    password = generate_password(
+        length,
+        use_letters,
+        use_digits,
+        use_symbols,
+        exclude_chars
+    )
+
+    print("\n🔐 Generated Password:")
+    print(password)
+
+    if get_yes_no("\nCopy password to clipboard? (yes/no): "):
+        copy_to_clipboard(password)
+
+except ValueError as e:
+    print("❌ Error:", e)
+
+print("\nThank you for using the Password Generator!")

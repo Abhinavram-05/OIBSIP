@@ -1,0 +1,55 @@
+import requests
+
+API_KEY = "48ca67f582d1361af7695b53afde56d9"
+BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+def get_location():
+    while True:
+        loc = input("Enter city name (e.g., Delhi,IN or ZIP): ").strip()
+        if loc:
+            return loc
+        print("❌ Location cannot be empty.")
+
+def get_units():
+    while True:
+        u = input("Choose temperature unit (C/F): ").upper()
+        if u in ["C", "F"]:
+            return u
+        print("❌ Enter C or F.")
+
+def fetch_weather(location, units):
+    params = {
+        "q": location,
+        "appid": API_KEY,
+        "units": "metric" if units == "C" else "imperial"
+    }
+
+    response = requests.get(BASE_URL, params=params, timeout=10)
+    data = response.json()
+
+    if response.status_code != 200:
+        raise ValueError(data.get("message", "Unknown API error"))
+
+    return data
+
+def display_weather(data, units):
+    symbol = "°C" if units == "C" else "°F"
+    print("\n🌍 Weather Report")
+    print("-" * 35)
+    print(f"City        : {data['name']}, {data['sys']['country']}")
+    print(f"Temperature : {data['main']['temp']} {symbol}")
+    print(f"Humidity    : {data['main']['humidity']}%")
+    print(f"Condition   : {data['weather'][0]['description'].title()}")
+    print(f"Wind Speed  : {data['wind']['speed']} m/s")
+    print("-" * 35)
+
+try:
+    location = get_location()
+    units = get_units()
+    weather = fetch_weather(location, units)
+    display_weather(weather, units)
+
+except requests.exceptions.Timeout:
+    print("❌ Network timeout. Try again.")
+except Exception as e:
+    print("❌ Error:", e)
